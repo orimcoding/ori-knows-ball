@@ -40,5 +40,4 @@ Predicting the 2025–26 UEFA Champions League — from the **group stage** to t
 ---
 
 ## 🔖 Versioning
-- Uses **SemVer**: `MAJOR.MINOR.PATCH`
 - Current: `0.1.0-dev` (data engineering/research/training)
