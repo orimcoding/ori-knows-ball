@@ -8,7 +8,7 @@ stat_types = [
 ]
 
 # Champions League seasons: 2017–18 to 2024–25
-seasons = range(2018, 2026)
+seasons = range(2017, 2026)
 competition = "UEFA-UCL"
 
 for season in seasons:
