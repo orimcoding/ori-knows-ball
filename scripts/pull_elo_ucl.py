@@ -2,39 +2,83 @@ import os
 import pandas as pd
 from soccerdata import ClubElo
 
-# Create output directory
-output_dir = "data/elo_filtered"
+# Example: paste UCL teams here for this season
+ucl_teams = [
+    "Frankfurt",       # Eintracht Frankfurt
+    "Paris SG",        # PSG
+    "Brugge",          # Club Brugge
+    "Sporting",        # Sporting CP
+    "St Gillis",       # Union Saint-Gilloise
+    "Bayern",          # Bayern Munich
+    "Arsenal",
+    "Inter",           # Internazionale
+    "Man City",        # Manchester City
+    "Qarabag",         # Qarabag FK
+    "Liverpool",
+    "Barcelona",
+    "Real Madrid",
+    "Tottenham",
+    "Dortmund",        # Borussia Dortmund
+    "Juventus",
+    "Leverkusen",      # Bayer Leverkusen
+    "Bodo/Glimt",
+    "FC København",    # Copenhagen
+    "Slavia Praha",
+    "Olympiakos",      # Olympiacos
+    "Paphos",          # Pafos
+    "Atlético",        # Atlético Madrid
+    "Benfica",
+    "Marseille",
+    "Newcastle",
+    "Villarreal",
+    "Chelsea",
+    "PSV",
+    "Ajax",
+    "Bilbao",          # Athletic Bilbao
+    "Napoli",
+    "Kairat Almaty",          # Kairat
+    "Monaco",
+    "Galatasaray",
+    "Atalanta"
+]
+
+
+# Output folder
+output_dir = "data/elo_ucl_teams"
 os.makedirs(output_dir, exist_ok=True)
 
-# Define season ranges (season end = June 30)
-seasons = {
-    2017: "2018-06-30",
-    2018: "2019-06-30",
-    2019: "2020-06-30",
-    2020: "2021-06-30",
-    2021: "2022-06-30",
-    2022: "2023-06-30",
-    2023: "2024-06-30",
-    2024: "2025-06-30",
-    2025: "2026-06-30"
-}
-
-# Instantiate ClubElo
+# Instantiate scraper
 elo = ClubElo()
 
-# Loop through seasons
-for season, date_str in seasons.items():
-    try:
-        print(f"📈 Pulling Club Elo for season ending {date_str}...")
-        df = elo.read_by_date(date_str)
-        
-        # Filter Elo > 1650
-        filtered = df[df["elo"] > 1650].copy()
-        filtered.sort_values("elo", ascending=False, inplace=True)
+# Season year mapping (can adjust later)
+season = 2025  # Example for current UCL
+season_start = f"{season}-08-01"
+season_end = f"{season+1}-06-30"
 
-        # Save CSV
-        output_path = os.path.join(output_dir, f"{season}_elo_filtered.csv")
-        filtered.to_csv(output_path)
-        print(f"✅ Saved {len(filtered)} teams for season {season} to {output_path}")
+print(f"📊 Pulling Club Elo for {season}-{season+1} UCL teams...")
+
+all_data = []
+
+for team in ucl_teams:
+    try:
+        team_history = elo.read_team_history(team)
+        # Filter to only the season range
+        team_season = team_history.loc[season_start:season_end].copy()
+        if not team_season.empty:
+            # Add metadata
+            team_season["season"] = f"{season}-{season+1}"
+            all_data.append(team_season)
+            print(f"✅ {team}: {len(team_season)} entries")
+        else:
+            print(f"⚠ No Elo data found for {team}")
     except Exception as e:
-        print(f"❌ Failed for season {season}: {e}")
+        print(f"❌ Failed for {team}: {e}")
+
+# Combine & save
+if all_data:
+    df = pd.concat(all_data)
+    output_path = os.path.join(output_dir, f"{season}_ucl_elo.csv")
+    df.to_csv(output_path)
+    print(f"💾 Saved Elo data for {len(ucl_teams)} teams → {output_path}")
+else:
+    print("❌ No data saved.")
